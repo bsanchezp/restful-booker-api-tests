@@ -1,0 +1,709 @@
+{
+  "info": {
+    "_postman_id": "084c1f1c-fb19-43f7-918f-11767fc322ee",
+    "name": "Restful Booker API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55595662"
+  },
+  "item": [
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 201\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/ping",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "ping"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "let json = pm.response.json();\r",
+                  "\r",
+                  "pm.environment.set(\"token\", json.token);\r",
+                  "\r",
+                  "pm.test(\"Token generado\", function () {\r",
+                  "    pm.expect(json.token).to.not.be.null;\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "booking",
+      "item": [
+        {
+          "name": "create booking",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Status 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Existe bookingid\", function () {\r",
+                  "    pm.expect(json.bookingid).to.be.a(\"number\");\r",
+                  "});\r",
+                  "\r",
+                  "// Guardar el id para los siguientes requests\r",
+                  "pm.environment.set(\"booking_id\", json.bookingid);\r",
+                  "\r",
+                  "pm.test(\"Booking contains required fields\", function () {\r",
+                  "    pm.expect(json.booking).to.have.property(\"firstname\");\r",
+                  "    pm.expect(json.booking).to.have.property(\"lastname\");\r",
+                  "    pm.expect(json.booking).to.have.property(\"totalprice\");\r",
+                  "    pm.expect(json.booking).to.have.property(\"depositpaid\");\r",
+                  "    pm.expect(json.booking).to.have.property(\"bookingdates\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Data types are correct\", function () {\r",
+                  "    pm.expect(json.booking.firstname).to.be.a(\"string\");\r",
+                  "    pm.expect(json.booking.lastname).to.be.a(\"string\");\r",
+                  "    pm.expect(json.booking.totalprice).to.be.a(\"number\");\r",
+                  "    pm.expect(json.booking.depositpaid).to.be.a(\"boolean\");\r",
+                  "\r",
+                  "    pm.expect(json.booking.bookingdates.checkin).to.be.a(\"string\");\r",
+                  "    pm.expect(json.booking.bookingdates.checkout).to.be.a(\"string\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Booking data is correct\", function () {\r",
+                  "    pm.expect(json.booking.firstname).to.eql(\"Beatriz\");\r",
+                  "    pm.expect(json.booking.lastname).to.eql(\"Sanchez\");\r",
+                  "    pm.expect(json.booking.totalprice).to.eql(500);\r",
+                  "    pm.expect(json.booking.depositpaid).to.eql(true);\r",
+                  "});\r",
+                  "\r",
+                  "const schema = {\r",
+                  "    type: \"object\",\r",
+                  "    required: [\"bookingid\", \"booking\"],\r",
+                  "    properties: {\r",
+                  "        bookingid: {\r",
+                  "            type: \"number\"\r",
+                  "        },\r",
+                  "        booking: {\r",
+                  "            type: \"object\",\r",
+                  "            required: [\r",
+                  "                \"firstname\",\r",
+                  "                \"lastname\",\r",
+                  "                \"totalprice\",\r",
+                  "                \"depositpaid\",\r",
+                  "                \"bookingdates\"\r",
+                  "            ],\r",
+                  "            properties: {\r",
+                  "                firstname: {\r",
+                  "                    type: \"string\"\r",
+                  "                },\r",
+                  "                lastname: {\r",
+                  "                    type: \"string\"\r",
+                  "                },\r",
+                  "                totalprice: {\r",
+                  "                    type: \"number\"\r",
+                  "                },\r",
+                  "                depositpaid: {\r",
+                  "                    type: \"boolean\"\r",
+                  "                },\r",
+                  "                bookingdates: {\r",
+                  "                    type: \"object\",\r",
+                  "                    required: [\"checkin\", \"checkout\"],\r",
+                  "                    properties: {\r",
+                  "                        checkin: {\r",
+                  "                            type: \"string\"\r",
+                  "                        },\r",
+                  "                        checkout: {\r",
+                  "                            type: \"string\"\r",
+                  "                        }\r",
+                  "                    }\r",
+                  "                },\r",
+                  "                additionalneeds: {\r",
+                  "                    type: \"string\"\r",
+                  "                }\r",
+                  "            }\r",
+                  "        }\r",
+                  "    }\r",
+                  "};\r",
+                  "\r",
+                  "pm.test(\"Schema de creación válido\", function () {\r",
+                  "    pm.response.to.have.jsonSchema(schema);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"firstname\": \"Beatriz\",\r\n    \"lastname\": \"Sanchez\",\r\n    \"totalprice\": 500,\r\n    \"depositpaid\": true,\r\n    \"bookingdates\": {\r\n        \"checkin\": \"2026-08-01\",\r\n        \"checkout\": \"2026-08-10\"\r\n    },\r\n    \"additionalneeds\": \"Breakfast\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/booking",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "get booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Status 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Firstname correcto\", function () {\r",
+                  "    pm.expect(json.firstname).to.eql(\"Beatriz\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Lastname correcto\", function () {\r",
+                  "    pm.expect(json.lastname).to.eql(\"Sanchez\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Precio correcto\", function () {\r",
+                  "    pm.expect(json.totalprice).to.eql(500);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/booking/{{booking_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                "{{booking_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Status 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Firstname actualizado\", function () {\r",
+                  "    pm.expect(json.firstname).to.eql(\"Maria\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Lastname actualizado\", function () {\r",
+                  "    pm.expect(json.lastname).to.eql(\"Lopez\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Precio actualizado\", function () {\r",
+                  "    pm.expect(json.totalprice).to.eql(700);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Depositpaid actualizado\", function () {\r",
+                  "    pm.expect(json.depositpaid).to.eql(false);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"firstname\": \"Maria\",\r\n  \"lastname\": \"Lopez\",\r\n  \"totalprice\": 700,\r\n  \"depositpaid\": false,\r\n  \"bookingdates\": {\r\n    \"checkin\": \"2026-09-01\",\r\n    \"checkout\": \"2026-09-05\"\r\n  },\r\n  \"additionalneeds\": \"Dinner\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/booking/{{booking_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                "{{booking_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Partial Update Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Status 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Firstname actualizado parcialmente\", function () {\r",
+                  "    pm.expect(json.firstname).to.eql(\"Lucia\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Lastname se mantiene del PUT\", function () {\r",
+                  "    pm.expect(json.lastname).to.eql(\"Lopez\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Additionalneeds actualizado\", function () {\r",
+                  "    pm.expect(json.additionalneeds).to.eql(\"Lunch\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"firstname\": \"Lucia\",\r\n  \"additionalneeds\": \"Lunch\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/booking/{{booking_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                "{{booking_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 201 al eliminar\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/booking/{{booking_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking",
+                "{{booking_id}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Negative booking",
+      "item": [
+        {
+          "name": "Create booking-Payload incomplet",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe retornar 400 cuando falta un campo obligatorio\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"No debe crear un booking\", function () {\r",
+                  "    if (pm.response.code === 200) {\r",
+                  "        const response = pm.response.json();\r",
+                  "        pm.expect(response).to.not.have.property(\"bookingid\");\r",
+                  "    }\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"firstname\": \"Beatriz\",\r\n    \"lastname\": \"Sanchez\",\r\n    \"totalprice\": 500,\r\n    \"depositpaid\": true,\r\n    \"additionalneeds\": \"Breakfast\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/booking",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Booking - Missing Required Field",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Debe retornar 400 para tipos de datos inválidos\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"firstname\": \"beatriz\",\r\n  \"lastname\": \"sanchez\",\r\n  \"totalprice\": 500,\r\n  \"depositpaid\": \"si\",\r\n  \"bookingdates\": {\r\n    \"checkin\": \"prueba\",\r\n    \"checkout\": \"prueba\"\r\n  },\r\n   \"additionalneeds\": \"Breakfast\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/booking",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Booking - Wrong Data Type",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"Status 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Existe bookingid\", function () {\r",
+                  "    pm.expect(json.bookingid).to.be.a(\"number\");\r",
+                  "});\r",
+                  "\r",
+                  "// Guardar el id para los siguientes requests\r",
+                  "pm.environment.set(\"booking_id\", json.bookingid);\r",
+                  "\r",
+                  "pm.test(\"Booking contains required fields\", function () {\r",
+                  "    pm.expect(json.booking).to.have.property(\"firstname\");\r",
+                  "    pm.expect(json.booking).to.have.property(\"lastname\");\r",
+                  "    pm.expect(json.booking).to.have.property(\"totalprice\");\r",
+                  "    pm.expect(json.booking).to.have.property(\"depositpaid\");\r",
+                  "    pm.expect(json.booking).to.have.property(\"bookingdates\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Data types are correct\", function () {\r",
+                  "    pm.expect(json.booking.firstname).to.be.a(\"string\");\r",
+                  "    pm.expect(json.booking.lastname).to.be.a(\"string\");\r",
+                  "    pm.expect(json.booking.totalprice).to.be.a(\"number\");\r",
+                  "    pm.expect(json.booking.depositpaid).to.be.a(\"boolean\");\r",
+                  "\r",
+                  "    pm.expect(json.booking.bookingdates.checkin).to.be.a(\"string\");\r",
+                  "    pm.expect(json.booking.bookingdates.checkout).to.be.a(\"string\");\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Booking data is correct\", function () {\r",
+                  "    pm.expect(json.booking.firstname).to.eql(\"Beatriz\");\r",
+                  "    pm.expect(json.booking.lastname).to.eql(\"Sanchez\");\r",
+                  "    pm.expect(json.booking.totalprice).to.eql(500);\r",
+                  "    pm.expect(json.booking.depositpaid).to.eql(true);\r",
+                  "});\r",
+                  "\r",
+                  "const schema = {\r",
+                  "    type: \"object\",\r",
+                  "    required: [\"bookingid\", \"booking\"],\r",
+                  "    properties: {\r",
+                  "        bookingid: {\r",
+                  "            type: \"number\"\r",
+                  "        },\r",
+                  "        booking: {\r",
+                  "            type: \"object\",\r",
+                  "            required: [\r",
+                  "                \"firstname\",\r",
+                  "                \"lastname\",\r",
+                  "                \"totalprice\",\r",
+                  "                \"depositpaid\",\r",
+                  "                \"bookingdates\"\r",
+                  "            ],\r",
+                  "            properties: {\r",
+                  "                firstname: {\r",
+                  "                    type: \"string\"\r",
+                  "                },\r",
+                  "                lastname: {\r",
+                  "                    type: \"string\"\r",
+                  "                },\r",
+                  "                totalprice: {\r",
+                  "                    type: \"number\"\r",
+                  "                },\r",
+                  "                depositpaid: {\r",
+                  "                    type: \"boolean\"\r",
+                  "                },\r",
+                  "                bookingdates: {\r",
+                  "                    type: \"object\",\r",
+                  "                    required: [\"checkin\", \"checkout\"],\r",
+                  "                    properties: {\r",
+                  "                        checkin: {\r",
+                  "                            type: \"string\"\r",
+                  "                        },\r",
+                  "                        checkout: {\r",
+                  "                            type: \"string\"\r",
+                  "                        }\r",
+                  "                    }\r",
+                  "                },\r",
+                  "                additionalneeds: {\r",
+                  "                    type: \"string\"\r",
+                  "                }\r",
+                  "            }\r",
+                  "        }\r",
+                  "    }\r",
+                  "};\r",
+                  "\r",
+                  "pm.test(\"Schema de creación válido\", function () {\r",
+                  "    pm.response.to.have.jsonSchema(schema);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Debe rechazar fechas con formato inválido\", function () {\r",
+                  "    pm.response.to.have.status(400);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"firstname\": \"Beatriz\",\r\n  \"lastname\": \"Sanchez\",\r\n  \"totalprice\": 500,\r\n  \"depositpaid\": true,\r\n  \"bookingdates\": {\r\n    \"checkin\": \"32/15/2026\",\r\n    \"checkout\": \"99/99/9999\"\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/booking",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "booking"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
