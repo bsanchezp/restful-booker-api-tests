@@ -31,6 +31,7 @@ jobs:
         run: mkdir -p reports
 
       - name: Run Postman Collection
+        id: newman
         continue-on-error: true
         run: |
           newman run collections/RestfulBooker.postman_collection.json \
@@ -44,3 +45,7 @@ jobs:
         with:
           name: newman-html-report
           path: reports/newman-report.html
+
+      - name: Fail job if Newman tests failed
+        if: steps.newman.outcome == 'failure'
+        run: exit 1
