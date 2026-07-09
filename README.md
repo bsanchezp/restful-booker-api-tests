@@ -308,6 +308,58 @@ La API permite registrar reservas con fechas inválidas, afectando la integridad
 
 ---
 
+# Prueba de carga con k6
+
+Como parte de los requerimientos opcionales, se implementó una prueba de carga utilizando **k6** sobre el endpoint:
+
+```http
+GET /booking
+```
+
+### Configuración de la prueba
+
+| Parámetro | Valor |
+|-----------|-------|
+| Usuarios virtuales (VUs) | 10 |
+| Duración | 30 segundos |
+| Endpoint | GET /booking |
+| Umbral de tiempo de respuesta | p(95) < 500 ms |
+| Umbral de tasa de errores | < 1% |
+
+### Ejecución
+
+```bash
+k6 run performance/booking-load-test.js
+```
+
+### Resultados obtenidos
+
+| Métrica | Resultado |
+|-----------|-----------:|
+| Requests ejecutados | 2721 |
+| Requests por segundo | 90.42 req/s |
+| Checks exitosos | 100% |
+| Checks fallidos | 0% |
+| Tiempo promedio de respuesta | 108.21 ms |
+| Tiempo mínimo | 95.93 ms |
+| Tiempo máximo | 312.42 ms |
+| Percentil 90 | 119.04 ms |
+| Percentil 95 | 132.23 ms |
+| Tasa de errores | 0.00% |
+
+### Lectura de resultados
+
+La prueba de carga se ejecutó durante **30 segundos** utilizando **10 usuarios virtuales**, generando un total de **2721 solicitudes** con un rendimiento aproximado de **90.42 solicitudes por segundo**.
+
+El endpoint cumplió con el umbral de rendimiento definido, obteniendo un **percentil 95 de 132.23 ms**, valor considerablemente menor al límite establecido de **500 ms**.
+
+Asimismo, la **tasa de errores fue del 0.00%**, cumpliendo el criterio de aceptación establecido de menos del **1%**.
+
+De acuerdo con los resultados obtenidos, el endpoint **GET /booking** presentó un comportamiento estable bajo las condiciones de carga evaluadas.
+
+<img width="615" height="621" alt="image" src="https://github.com/user-attachments/assets/29c2d75a-a3ff-409d-9aa1-63a7cdf55a86" />
+
+
 # Autor
 
 **Beatriz Sánchez Paredes**
