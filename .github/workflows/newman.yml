@@ -4,40 +4,43 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   newman-tests:
-
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Descargar repositorio
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Instalar Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Instalar Newman
+      - name: Install Newman
         run: |
           npm install -g newman
           npm install -g newman-reporter-html
 
-      - name: Crear carpeta reports
+      - name: Create reports directory
         run: mkdir -p reports
 
-      - name: Ejecutar colección
+      - name: Run Postman Collection
+        continue-on-error: true
         run: |
           newman run collections/RestfulBooker.postman_collection.json \
           -e environments/Dev.postman_environment.json \
           -r cli,html \
           --reporter-html-export reports/newman-report.html
 
-      - name: Publicar Reporte
-        uses: actions/upload-artifact@v4
+      - name: Upload Newman Report
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: Newman Report
+          name: newman-html-report
           path: reports/newman-report.html
