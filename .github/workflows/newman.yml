@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install Newman
         run: |
@@ -32,12 +32,15 @@ jobs:
 
       - name: Run Postman Collection
         id: newman
-        continue-on-error: true
+        shell: bash
         run: |
+          set +e
           newman run collections/RestfulBooker.postman_collection.json \
-          -e environments/Dev.postman_environment.json \
-          -r cli,html \
-          --reporter-html-export reports/newman-report.html
+            -e environments/Dev.postman_environment.json \
+            -r cli,html \
+            --reporter-html-export reports/newman-report.html
+          echo "NEWMAN_EXIT_CODE=$?" >> $GITHUB_ENV
+          exit 0
 
       - name: Upload Newman Report
         if: always()
@@ -47,5 +50,5 @@ jobs:
           path: reports/newman-report.html
 
       - name: Fail job if Newman tests failed
-        if: steps.newman.outcome == 'failure'
+        if: env.NEWMAN_EXIT_CODE != '0'
         run: exit 1
