@@ -35,11 +35,16 @@ jobs:
         shell: bash
         run: |
           set +e
+
           newman run collections/RestfulBooker.postman_collection.json \
             -e environments/Dev.postman_environment.json \
             -r cli,html \
             --reporter-html-export reports/newman-report.html
-          echo "NEWMAN_EXIT_CODE=$?" >> $GITHUB_ENV
+
+          EXIT_CODE=$?
+
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
           exit 0
 
       - name: Upload Newman Report
@@ -49,6 +54,8 @@ jobs:
           name: newman-html-report
           path: reports/newman-report.html
 
-      - name: Fail job if Newman tests failed
-        if: env.NEWMAN_EXIT_CODE != '0'
-        run: exit 1
+      - name: Fail workflow if Newman tests failed
+        if: steps.newman.outputs.exit_code != '0'
+        run: |
+          echo "Newman detected failed tests."
+          exit 1

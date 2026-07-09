@@ -10,7 +10,7 @@
 
 ## ¿Por qué elegí este stack?
 
-Se eligió postman porque permite construir y mantener pruebas API de manera rápida, clara y reutilizable, facilitando el manejo de colecciones, variables de ambiente y automatización mediante scripts en JavaScript.
+Se eligió **Postman** porque permite construir y mantener pruebas API de manera rápida, clara y reutilizable, facilitando el manejo de colecciones, variables de ambiente y automatización mediante scripts en JavaScript.
 
 Se utilizó **Newman** para ejecutar la colección desde línea de comandos e integrarla fácilmente en un proceso de Integración Continua (CI).
 
@@ -61,9 +61,6 @@ Negative Cases
     Wrong Data Type
     Invalid Dates
 
-Bugs
-```
-
 ---
 
 # Separación de responsabilidades
@@ -105,8 +102,6 @@ Entre ellas:
 - Tiempo de respuesta
 
 ---
-
-
 
 # Validación de esquema
 
@@ -186,7 +181,7 @@ npm install -g newman-reporter-html
 ```bash
 newman run collections/RestfulBooker.postman_collection.json -e environments/Dev.postman_environment.json
 ```
-
+Cambio de ambiente: Para ejecutar la colección en otro ambiente, únicamente se debe cambiar el archivo indicado en el parámetro -e de Newman (por ejemplo, de Dev.postman_environment.json a UAT.postman_environment.json), sin modificar la colección ni los requests.
 ---
 
 ## Ejecutar con reporte HTML
@@ -229,64 +224,131 @@ GitHub
 
 # Bugs encontrados
 
-## Bug 1
+# Bugs encontrados
 
-**Descripción**
+## Bug 01: Manejo incorrecto de campos obligatorios
 
-La API acepta reservas con payload incompleto.
+### Escenario
+Se envía una solicitud para crear una reserva omitiendo un campo obligatorio, por ejemplo:
 
-**Esperado**
+```json
+{
+  "lastname": "Sanchez",
+  "totalprice": 500,
+  "depositpaid": true,
+  "bookingdates": {
+    "checkin": "2026-08-10",
+    "checkout": "2026-08-15"
+  }
+}
+```
 
-HTTP 400 Bad Request.
+### Esperado
 
-**Obtenido**
+La API debería responder con:
 
-La reserva es creada exitosamente.
+```text
+400 Bad Request
+```
+
+indicando que falta un campo obligatorio.
+
+### Obtenido
+
+La API responde con:
+
+```text
+500 Internal Server Error
+```
+
+### Impacto
+
+La API no maneja correctamente los errores de validación de entrada y expone un error interno del servidor en lugar de informar un error de solicitud inválida.
+
+---
+
+## Bug 02: Validación insuficiente de tipos de datos
+
+### Escenario
+
+La API acepta valores con tipos de datos incorrectos en diferentes campos, por ejemplo:
+
+```json
+{
+  "totalprice": "500",
+  "depositpaid": "true",
+}
+```
+
+### Esperado
+
+La API debería responder con:
+
+```text
+400 Bad Request
+```
+
+indicando que:
+
+- `totalprice` debe ser numérico.
+- `depositpaid` debe ser booleano.
+
+### Obtenido
+
+La API crea la reserva  con un status 200.
+
+### Impacto
+
+La falta de validación de tipos de datos permite registrar información inconsistente, afectando la integridad de los datos almacenados.
 
 ---
 
-## Bug 2
+## Bug 03: Validación insuficiente del formato de fechas
 
-**Descripción**
+### Escenario
 
-La API acepta tipos de datos incorrectos.
+Se envían valores que no representan fechas válidas.
 
-**Esperado**
+```json
+{
+  "bookingdates": {
+    "checkin": "32-13-2026",
+    "checkout": "99-02-2025"
+  }
+}
+```
 
-HTTP 400 Bad Request.
+o incluso:
 
-**Obtenido**
+```json
+{
+  "bookingdates": {
+    "checkin": "prueba",
+    "checkout": "prueba"
+  }
+}
+```
 
-La solicitud no es validada correctamente.
+### Esperado
 
----
+La API debería responder con:
 
-## Bug 3
+```text
+400 Bad Request
+```
 
-**Descripción**
+indicando que `checkin` y `checkout` deben contener fechas válidas.
 
-La API acepta fechas inválidas.
+### Obtenido
 
-**Esperado**
+La API crea la reserva  con un status 200.
 
-HTTP 400 Bad Request.
+### Impacto
 
-**Obtenido**
-
-La reserva es procesada sin validar el formato o la lógica de las fechas.
-
----
+La API permite registrar reservas con fechas inválidas, lo que puede generar inconsistencias en la lógica de negocio y afectar procesos que dependen de la validez de las fechas.
 
 # Autor
 
-Beatriz Sánchez Paredes
+Beatriz Sanchez Paredes
 
 QA Automation Engineer
-
-sino cuenta con el campo additionalneeds crea normal la reserva y cuando no tiene el firstname arroja un error 500 
--El tipo de dato totalprice es una cadena y no un numero deja crear normal la reserva
-El tipo de dato depositpaid es una cadena y no un booleano
- "additionalneeds": no diferencia de cadena o numero 
-bookingdates": {
-    "checkin": "prueba",
-    "checkout": "prueba" acepta cadenas y no solo fechas y crea la reserva 
