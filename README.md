@@ -282,3 +282,11 @@ La reserva es procesada sin validar el formato o la lógica de las fechas.
 Beatriz Sánchez Paredes
 
 QA Automation Engineer
+
+sino cuenta con el campo additionalneeds crea normal la reserva y cuando no tiene el firstname arroja un error 500 
+-El tipo de dato totalprice es una cadena y no un numero deja crear normal la reserva
+El tipo de dato depositpaid es una cadena y no un booleano
+ "additionalneeds": no diferencia de cadena o numero 
+bookingdates": {
+    "checkin": "prueba",
+    "checkout": "prueba" acepta cadenas y no solo fechas y crea la reserva 

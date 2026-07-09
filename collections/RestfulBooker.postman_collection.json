@@ -42,7 +42,7 @@
           "response": []
         },
         {
-          "name": "Auth",
+          "name": "Auth pass",
           "event": [
             {
               "listen": "test",
@@ -55,6 +55,70 @@
                   "pm.test(\"Token generado\", function () {\r",
                   "    pm.expect(json.token).to.not.be.null;\r",
                   "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\":\"{{username}}\",\r\n    \"password\":\"{{password}}\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Auth fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const respuesta = pm.response.json();\r",
+                  "\r",
+                  "pm.test(\"No se genera un token de acceso\", function () {\r",
+                  "    pm.expect(respuesta.token).to.not.exist;\r",
+                  "\r",
+                  "});\r",
+                  "pm.test(\"Status code es 401 ante credenciales incorrectas\", function () {\r",
+                  "    pm.response.to.have.status(401);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"La respuesta contiene el motivo del fallo\", function () {\r",
+                  "    pm.expect(respuesta.reason).to.be.a('string');\r",
+                  "    pm.expect(respuesta.reason).to.equal(\"Bad credentials\");\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set(\"password\", \"1234\");\r",
+                  ""
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -704,6 +768,12 @@
           "response": []
         }
       ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "username",
+      "value": ""
     }
   ]
 }
