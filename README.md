@@ -1,6 +1,6 @@
 # Restful Booker API Tests
 
-# Stack tecnológico
+# Stack Tecnológico
 
 - Postman
 - Newman
@@ -8,19 +8,19 @@
 - GitHub Actions
 - Git
 
-## ¿Por qué elegí este stack?
+## ¿Por qué este stack?
 
-Se eligió **Postman** porque permite construir y mantener pruebas API de manera rápida, clara y reutilizable, facilitando el manejo de colecciones, variables de ambiente y automatización mediante scripts en JavaScript.
+Se eligió **Postman** por su facilidad para construir y mantener pruebas API mediante colecciones reutilizables, variables de ambiente y scripts de validación en JavaScript.
 
-Se utilizó **Newman** para ejecutar la colección desde línea de comandos e integrarla fácilmente en un proceso de Integración Continua (CI).
+**Newman** permite ejecutar la misma colección desde línea de comandos e integrarla fácilmente en procesos de Integración Continua (CI).
 
-Finalmente, **GitHub Actions** permite automatizar la ejecución de la suite en cada cambio realizado al repositorio y publicar automáticamente el reporte de ejecución como artefacto.
+Finalmente, **GitHub Actions** automatiza la ejecución de la suite y publica el reporte HTML generado por Newman como artefacto del pipeline.
 
 ---
 
 # Estructura del proyecto
 
-```
+```text
 restful-booker-api-tests
 │
 ├── collections
@@ -44,11 +44,10 @@ restful-booker-api-tests
 
 # Organización de la colección
 
-La colección está organizada por funcionalidades para facilitar su mantenimiento.
-
-```
+```text
 Health
 Authentication
+
 Booking
     Create Booking
     Get Booking
@@ -61,11 +60,14 @@ Negative Cases
     Wrong Data Type
     Invalid Dates
 
+Bug Validation
+```
+
 ---
 
 # Separación de responsabilidades
 
-Con el objetivo de evitar un único script monolítico, las responsabilidades fueron separadas de la siguiente manera:
+La solución se estructuró para evitar mezclar la construcción de peticiones, los datos y las validaciones en un único lugar.
 
 ### Construcción de peticiones
 
@@ -78,7 +80,7 @@ Cada request contiene únicamente:
 
 ### Datos de prueba
 
-Los datos configurables se manejan mediante variables de ambiente:
+Los datos configurables se administran mediante variables de ambiente:
 
 - base_url
 - username
@@ -86,11 +88,11 @@ Los datos configurables se manejan mediante variables de ambiente:
 - token
 - booking_id
 
-Esto permite reutilizar la colección sin modificar los requests.
+Esto permite reutilizar la colección en diferentes ambientes sin modificar los requests.
 
 ### Aserciones
 
-Todas las validaciones se encuentran exclusivamente en la pestaña **Tests** de cada request.
+Todas las validaciones se encuentran en la pestaña **Tests** de cada request.
 
 Entre ellas:
 
@@ -98,20 +100,14 @@ Entre ellas:
 - Campos obligatorios
 - Tipos de datos
 - Valores esperados
-- JSON Schema
+- Validación mediante JSON Schema
 - Tiempo de respuesta
 
 ---
 
 # Validación de esquema
 
-El endpoint:
-
-```
-POST /booking
-```
-
-incluye validación completa mediante JSON Schema verificando:
+El endpoint **POST /booking** implementa validación mediante **JSON Schema**, verificando:
 
 - estructura de la respuesta
 - campos obligatorios
@@ -124,29 +120,27 @@ Adicionalmente se realizan validaciones campo por campo para asegurar la consist
 
 # Configuración por ambiente
 
-La colección utiliza la variable:
+La colección utiliza variables de entorno, por ejemplo:
 
-```
+```text
 {{base_url}}
 ```
 
-Por ello puede ejecutarse sobre diferentes ambientes sin modificar el código.
+Esto permite ejecutar la misma colección en distintos ambientes sin modificar los requests.
 
 Ejemplo:
 
-### DEV
+DEV
 
-```
+```text
 base_url=https://restful-booker.herokuapp.com
 ```
 
-### UAT
+UAT
 
-```
+```text
 base_url=https://restful-booker.herokuapp.com
 ```
-
-El cambio de ambiente se realiza únicamente seleccionando el Environment correspondiente en Postman o mediante Newman.
 
 ---
 
@@ -156,62 +150,64 @@ El cambio de ambiente se realiza únicamente seleccionando el Environment corres
 
 ```bash
 git clone https://github.com/bsanchezp/restful-booker-api-tests.git
-```
-
-```bash
 cd restful-booker-api-tests
 ```
 
----
-
-## Instalar Newman
+## Instalar dependencias
 
 ```bash
 npm install -g newman
-```
-
-```bash
 npm install -g newman-reporter-html
 ```
 
----
-
 ## Ejecutar la colección
+
+DEV
 
 ```bash
 newman run collections/RestfulBooker.postman_collection.json -e environments/Dev.postman_environment.json
 ```
-Cambio de ambiente: Para ejecutar la colección en otro ambiente, únicamente se debe cambiar el archivo indicado en el parámetro -e de Newman (por ejemplo, de Dev.postman_environment.json a UAT.postman_environment.json), sin modificar la colección ni los requests.
----
 
-## Ejecutar con reporte HTML
+UAT
 
 ```bash
-newman run collections/RestfulBooker.postman_collection.json -e environments/Dev.postman_environment.json -r cli,html --reporter-html-export reports/newman-report.html
+newman run collections/RestfulBooker.postman_collection.json -e environments/UAT.postman_environment.json
+```
+
+> Para cambiar de ambiente únicamente se debe modificar el archivo indicado en el parámetro `-e`, sin realizar cambios en la colección.
+
+## Generar reporte HTML
+
+```bash
+newman run collections/RestfulBooker.postman_collection.json \
+-e environments/Dev.postman_environment.json \
+-r cli,html \
+--reporter-html-export reports/newman-report.html
 ```
 
 ---
 
-# Integración continua (GitHub Actions)
+# Integración Continua
 
-El proyecto cuenta con un pipeline de GitHub Actions que:
+El proyecto incorpora un pipeline de **GitHub Actions** que realiza automáticamente las siguientes actividades:
 
-- descarga el repositorio
-- instala Node.js
-- instala Newman
-- ejecuta la colección
-- genera un reporte HTML
-- publica el reporte como artefacto
+- Descarga el repositorio.
+- Instala Node.js.
+- Instala Newman y el HTML Reporter.
+- Ejecuta la colección de Postman.
+- Genera el reporte HTML.
+- Publica el reporte como artefacto.
+- Finaliza el pipeline con estado **Failed** cuando existen pruebas fallidas, manteniendo disponible el reporte para su análisis.
 
 Workflow:
 
-```
+```text
 .github/workflows/newman.yml
 ```
 
 El reporte puede descargarse desde:
 
-```
+```text
 GitHub
 → Actions
 → API Tests
@@ -221,93 +217,62 @@ GitHub
 
 ---
 
-
 # Bugs encontrados
 
-# Bugs encontrados
-
-## Bug 01: Manejo incorrecto de campos obligatorios
+## Bug 01 – Manejo incorrecto de campos obligatorios
 
 ### Escenario
-Se envía una solicitud para crear una reserva omitiendo un campo obligatorio, por ejemplo:
 
-```json
-{
-  "lastname": "Sanchez",
-  "totalprice": 500,
-  "depositpaid": true,
-  "bookingdates": {
-    "checkin": "2026-08-10",
-    "checkout": "2026-08-15"
-  }
-}
-```
+Se envía una solicitud sin el campo obligatorio `firstname`.
 
 ### Esperado
 
-La API debería responder con:
-
-```text
-400 Bad Request
-```
-
-indicando que falta un campo obligatorio.
+**400 Bad Request** indicando error de validación.
 
 ### Obtenido
 
-La API responde con:
-
-```text
-500 Internal Server Error
-```
+**500 Internal Server Error**.
 
 ### Impacto
 
-La API no maneja correctamente los errores de validación de entrada y expone un error interno del servidor en lugar de informar un error de solicitud inválida.
+La API expone un error interno en lugar de informar un error de validación al cliente.
 
 ---
 
-## Bug 02: Validación insuficiente de tipos de datos
+## Bug 02 – Validación insuficiente de tipos de datos
 
 ### Escenario
 
-La API acepta valores con tipos de datos incorrectos en diferentes campos, por ejemplo:
+La API acepta tipos de datos incorrectos.
+
+Ejemplo:
 
 ```json
 {
   "totalprice": "500",
-  "depositpaid": "true",
+  "depositpaid": "true"
 }
 ```
 
 ### Esperado
 
-La API debería responder con:
-
-```text
-400 Bad Request
-```
-
-indicando que:
-
-- `totalprice` debe ser numérico.
-- `depositpaid` debe ser booleano.
+**400 Bad Request**.
 
 ### Obtenido
 
-La API crea la reserva  con un status 200.
+La API crea la reserva correctamente con **HTTP 200**.
 
 ### Impacto
 
-La falta de validación de tipos de datos permite registrar información inconsistente, afectando la integridad de los datos almacenados.
+Se permite almacenar información con tipos de datos inconsistentes.
 
 ---
 
-## Bug 03: Validación insuficiente del formato de fechas
+## Bug 03 – Validación insuficiente del formato de fechas
 
 ### Escenario
 
-Se envían valores que no representan fechas válidas.
+La API acepta fechas inválidas.
 
 ```json
 {
@@ -318,7 +283,7 @@ Se envían valores que no representan fechas válidas.
 }
 ```
 
-o incluso:
+o
 
 ```json
 {
@@ -331,24 +296,72 @@ o incluso:
 
 ### Esperado
 
-La API debería responder con:
-
-```text
-400 Bad Request
-```
-
-indicando que `checkin` y `checkout` deben contener fechas válidas.
+**400 Bad Request**.
 
 ### Obtenido
 
-La API crea la reserva  con un status 200.
+La API crea la reserva correctamente con **HTTP 200**.
 
 ### Impacto
 
-La API permite registrar reservas con fechas inválidas, lo que puede generar inconsistencias en la lógica de negocio y afectar procesos que dependen de la validez de las fechas.
+La API permite registrar reservas con fechas inválidas, afectando la integridad de la información.
+
+---
+
+# Prueba de carga con k6
+
+Como parte de los requerimientos opcionales, se implementó una prueba de carga utilizando **k6** sobre el endpoint:
+
+```http
+GET /booking
+```
+
+### Configuración de la prueba
+
+| Parámetro | Valor |
+|-----------|-------|
+| Usuarios virtuales (VUs) | 10 |
+| Duración | 30 segundos |
+| Endpoint | GET /booking |
+| Umbral de tiempo de respuesta | p(95) < 500 ms |
+| Umbral de tasa de errores | < 1% |
+
+### Ejecución
+
+```bash
+k6 run performance/booking-load-test.js
+```
+
+### Resultados obtenidos
+
+| Métrica | Resultado |
+|-----------|-----------:|
+| Requests ejecutados | 2721 |
+| Requests por segundo | 90.42 req/s |
+| Checks exitosos | 100% |
+| Checks fallidos | 0% |
+| Tiempo promedio de respuesta | 108.21 ms |
+| Tiempo mínimo | 95.93 ms |
+| Tiempo máximo | 312.42 ms |
+| Percentil 90 | 119.04 ms |
+| Percentil 95 | 132.23 ms |
+| Tasa de errores | 0.00% |
+
+### Lectura de resultados
+
+La prueba de carga se ejecutó durante **30 segundos** utilizando **10 usuarios virtuales**, generando un total de **2721 solicitudes** con un rendimiento aproximado de **90.42 solicitudes por segundo**.
+
+El endpoint cumplió con el umbral de rendimiento definido, obteniendo un **percentil 95 de 132.23 ms**, valor considerablemente menor al límite establecido de **500 ms**.
+
+Asimismo, la **tasa de errores fue del 0.00%**, cumpliendo el criterio de aceptación establecido de menos del **1%**.
+
+De acuerdo con los resultados obtenidos, el endpoint **GET /booking** presentó un comportamiento estable bajo las condiciones de carga evaluadas.
+
+<img width="615" height="621" alt="image" src="https://github.com/user-attachments/assets/29c2d75a-a3ff-409d-9aa1-63a7cdf55a86" />
+
 
 # Autor
 
-Beatriz Sanchez Paredes
+**Beatriz Sánchez Paredes**
 
 QA Automation Engineer
